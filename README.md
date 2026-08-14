@@ -1,10 +1,10 @@
 # mom-mcp
 
-A local stdio MCP server (mixture of agents) for running single-turn prompts across multiple model providers - OpenAI, Ollama (cloud models proxied locally) and OpenRouter. Similar in spirit to Claude's advisor tool, but not limited to one family of models: agents can fan the same prompt out to several models and combine the output.
+A local stdio MCP server (mixture of models) for running single-turn prompts across multiple model providers - OpenAI and OpenRouter. Similar in spirit to Claude's advisor tool, but not limited to one family of models: agents can fan the same prompt out to several models and combine the output.
 
 ## Tools
 
-- `list_models` - returns supported providers and their models, each with a human-friendly `name` and the provider-specific `id` to pass to `execute_prompt`.
+- `search_models` - searches models across all providers, matching the query case-insensitively against model name, model id and provider name (an empty query returns everything). Each match includes the `provider`, a human-friendly `name`, the `id` to pass to `execute_prompt` and the input `modalities` the model accepts.
 - `execute_prompt` - executes a single-turn prompt against a given `provider` and `model_id`. Optional `attachments` is a list of local file paths (text or images) included as context; paths work because the server always runs on the same machine as the caller.
 
 ## Setup
@@ -13,8 +13,6 @@ A local stdio MCP server (mixture of agents) for running single-turn prompts acr
 cp .env.example .env   # then fill in the keys
 uv sync
 ```
-
-Ollama must be running locally (`ollama serve`) and signed in to ollama.com for the cloud models.
 
 ## Registering with Claude Code
 
@@ -28,4 +26,4 @@ claude mcp add --scope user mom -- uv run --directory /path/to/mom-mcp mom-mcp
 uv run pytest
 ```
 
-Providers live in `src/mom_mcp/providers/`, one module each, all delegating to a shared OpenAI-compatible chat helper in `base.py`. To add a model, extend the hardcoded list in the relevant provider module.
+Providers are declared in `src/mom_mcp/providers.py` as instances of a single OpenAI-compatible `Provider` dataclass. To add a model, extend the provider's hardcoded model list; to add a provider, declare a new `Provider` and register it in `PROVIDERS`.
