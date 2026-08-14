@@ -17,12 +17,15 @@ SUPPORTED_PROVIDERS = ", ".join(PROVIDERS)
 
 @mcp.tool(description=f"""Search models across the supported providers: {SUPPORTED_PROVIDERS}.
 
-The query is matched case-insensitively against each model's name, model id and
-provider name; an empty query returns every model. Each match includes the
-provider, a human-friendly name, the model id to pass to execute_prompt and the
-input modalities the model accepts (text-only models reject image attachments).""")
-def search_models(query: str = "") -> list[dict]:
-    return providers.search_models(query)
+Model catalogues are fetched live from each provider's API. The query is
+matched case-insensitively against each model's name, model id and provider
+name; an empty query matches every model. At most limit results are returned,
+so refine the query rather than raising the limit. Each match includes the
+provider, a human-friendly name, the model id to pass to execute_prompt and
+the input modalities the model accepts (null when the provider does not
+report them; text-only models reject image attachments).""")
+def search_models(query: str = "", limit: int = 50) -> list[dict]:
+    return providers.search_models(query, limit)
 
 
 @mcp.tool(description=f"""Execute a single-turn prompt against a model and return its response.
