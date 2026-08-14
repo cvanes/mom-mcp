@@ -4,8 +4,8 @@ from abc import ABC, abstractmethod
 
 from openai import OpenAI
 
-from moa_mcp.attachments import build_user_message
-from moa_mcp.models import Model
+from mom_mcp.attachments import build_user_message
+from mom_mcp.models import Model
 
 
 class Provider(ABC):

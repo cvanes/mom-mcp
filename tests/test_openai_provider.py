@@ -4,8 +4,8 @@ from unittest.mock import patch
 
 import pytest
 
-from moa_mcp.models import Model
-from moa_mcp.providers.openai_provider import API_KEY_ENV_VAR, PROVIDER
+from mom_mcp.models import Model
+from mom_mcp.providers.openai_provider import API_KEY_ENV_VAR, PROVIDER
 
 
 def test_list_models_returns_the_three_supported_models():
@@ -25,7 +25,7 @@ def test_execute_delegates_to_execute_chat_with_expected_arguments(monkeypatch):
     monkeypatch.setenv(API_KEY_ENV_VAR, "test-key")
 
     # Act
-    with patch("moa_mcp.providers.openai_provider.execute_chat") as execute_chat:
+    with patch("mom_mcp.providers.openai_provider.execute_chat") as execute_chat:
         execute_chat.return_value = "ok"
         result = PROVIDER.execute("gpt-5.6-luna", "hello", ["notes.txt"])
 

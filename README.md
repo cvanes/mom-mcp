@@ -1,4 +1,4 @@
-# moa-mcp
+# mom-mcp
 
 A local stdio MCP server (mixture of agents) for running single-turn prompts across multiple model providers - OpenAI, Ollama (cloud models proxied locally) and OpenRouter. Similar in spirit to Claude's advisor tool, but not limited to one family of models: agents can fan the same prompt out to several models and combine the output.
 
@@ -19,7 +19,7 @@ Ollama must be running locally (`ollama serve`) and signed in to ollama.com for 
 ## Registering with Claude Code
 
 ```sh
-claude mcp add --scope user moa -- uv run --directory /path/to/moa-mcp moa-mcp
+claude mcp add --scope user mom -- uv run --directory /path/to/mom-mcp mom-mcp
 ```
 
 ## Development
@@ -28,4 +28,4 @@ claude mcp add --scope user moa -- uv run --directory /path/to/moa-mcp moa-mcp
 uv run pytest
 ```
 
-Providers live in `src/moa_mcp/providers/`, one module each, all delegating to a shared OpenAI-compatible chat helper in `base.py`. To add a model, extend the hardcoded list in the relevant provider module.
+Providers live in `src/mom_mcp/providers/`, one module each, all delegating to a shared OpenAI-compatible chat helper in `base.py`. To add a model, extend the hardcoded list in the relevant provider module.

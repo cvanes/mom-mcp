@@ -2,8 +2,8 @@
 
 import os
 
-from moa_mcp.models import Model
-from moa_mcp.providers.base import Provider, execute_chat
+from mom_mcp.models import Model
+from mom_mcp.providers.base import Provider, execute_chat
 
 _DEFAULT_HOST = "http://localhost:11434"
 

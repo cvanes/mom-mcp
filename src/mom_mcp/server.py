@@ -1,4 +1,4 @@
-"""moa-mcp: a local stdio MCP server for running prompts across model providers."""
+"""mom-mcp: a local stdio MCP server for running prompts across model providers."""
 
 from pathlib import Path
 
@@ -7,9 +7,9 @@ from mcp.server import MCPServer
 
 load_dotenv(Path(__file__).resolve().parents[2] / ".env")
 
-from moa_mcp.providers import PROVIDERS  # noqa: E402  (providers read env at import)
+from mom_mcp.providers import PROVIDERS  # noqa: E402  (providers read env at import)
 
-mcp = MCPServer("moa")
+mcp = MCPServer("mom")
 
 
 @mcp.tool()

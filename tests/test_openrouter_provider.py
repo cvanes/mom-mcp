@@ -4,7 +4,7 @@ from unittest.mock import patch
 
 import pytest
 
-from moa_mcp.providers.openrouter_provider import BASE_URL, PROVIDER
+from mom_mcp.providers.openrouter_provider import BASE_URL, PROVIDER
 
 
 def test_lists_the_four_supported_models():
@@ -25,7 +25,7 @@ def test_execute_delegates_with_openrouter_base_url_and_key(monkeypatch):
     monkeypatch.setenv("OPENROUTER_API_KEY", "test-key")
 
     # Act
-    with patch("moa_mcp.providers.openrouter_provider.execute_chat") as execute_chat:
+    with patch("mom_mcp.providers.openrouter_provider.execute_chat") as execute_chat:
         execute_chat.return_value = "ok"
         result = PROVIDER.execute("moonshotai/kimi-k3", "hello", [])
 

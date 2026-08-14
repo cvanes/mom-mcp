@@ -2,8 +2,8 @@
 
 import os
 
-from moa_mcp.models import Model
-from moa_mcp.providers.base import Provider, execute_chat
+from mom_mcp.models import Model
+from mom_mcp.providers.base import Provider, execute_chat
 
 BASE_URL = "https://openrouter.ai/api/v1"
 API_KEY_ENV_VAR = "OPENROUTER_API_KEY"

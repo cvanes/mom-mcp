@@ -4,7 +4,7 @@ from unittest.mock import patch
 
 import pytest
 
-from moa_mcp.providers import ollama_provider
+from mom_mcp.providers import ollama_provider
 
 
 def test_list_models_includes_expected_tags():

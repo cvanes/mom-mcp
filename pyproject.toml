@@ -1,5 +1,5 @@
 [project]
-name = "moa-mcp"
+name = "mom-mcp"
 version = "0.1.0"
 description = "Mixture-of-agents MCP server: run prompts across OpenAI, Ollama and OpenRouter models"
 readme = "README.md"
@@ -14,7 +14,7 @@ dependencies = [
 ]
 
 [project.scripts]
-moa-mcp = "moa_mcp.server:main"
+mom-mcp = "mom_mcp.server:main"
 
 [build-system]
 requires = ["uv_build>=0.11.7,<0.12.0"]
