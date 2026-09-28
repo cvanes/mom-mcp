@@ -1,16 +1,20 @@
 # mom-mcp
 
-A local stdio MCP server (mixture of models) for running single-turn prompts across multiple model providers - OpenAI and OpenRouter. Similar in spirit to Claude's advisor tool, but not limited to one family of models: agents can fan the same prompt out to several models and combine the output.
+A local stdio MCP server (mixture of models) for running single-turn prompts across multiple model providers - OpenAI, Ollama (cloud) and OpenRouter. Similar in spirit to Claude's advisor tool, but not limited to one family of models: agents can fan the same prompt out to several models and combine the output.
 
 ## Tools
 
-- `search_models` - searches models across all providers, with catalogues fetched live from each provider's API. The query is matched case-insensitively against model name, model id and provider name (an empty query matches everything); at most `limit` results are returned. Each match includes the `provider`, a human-friendly `name`, the `id` to pass to `execute_prompt` and the input `modalities` the model accepts (`null` where the provider does not report them).
-- `execute_prompt` - executes a single-turn prompt against a given `provider` and `model_id`. Optional `attachments` is a list of local file paths (text or images) included as context; paths work because the server always runs on the same machine as the caller.
+- `get_second_opinion` - sends a piece of work (writing, code, a design, a technical solution) to another model with reviewer instructions: lead with a verdict, then specific, actionable findings ordered by importance. An optional `focus` narrows the review; optional `attachments` add context.
+- `execute_prompt` - executes a single-turn prompt against a given `provider` and `model_id`, with an optional `system` prompt. Optional `attachments` is a list of local file paths included as context: text files are inlined, images are embedded for vision models, and documents (PDF, Word, PowerPoint, Excel, ...) are converted to markdown with markitdown. Paths work because the server always runs on the same machine as the caller.
+- `search_models` - searches models across all providers, with catalogues fetched live from each provider's API and cached for a few minutes. The query is matched case-insensitively against model name, model id and provider name (an empty query matches everything). Returns an object with:
+  - `models` - at most `limit` matches, each with the `provider`, a human-friendly `name`, the `id` to pass to the other tools, the input `modalities` (`null` where the provider does not report them) and the `cost` in USD per million input/output tokens (`null` where pricing is not reported or is subscription-based, e.g. Ollama cloud);
+  - `truncated` - `true` when more models matched than `limit` returned;
+  - `errors` - one entry per provider whose catalogue could not be fetched (e.g. a missing API key); those providers are skipped rather than failing the whole search.
 
 ## Setup
 
 ```sh
-cp .env.example .env   # then fill in the keys
+cp .env.example .env   # then fill in the keys you use; every provider is optional
 uv sync
 ```
 

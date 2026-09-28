@@ -5,13 +5,18 @@ from unittest.mock import patch
 
 import pytest
 
-from mom_mcp.models import Model
-from mom_mcp.providers import OPENAI_PROVIDER, OPENROUTER_PROVIDER, PROVIDERS
+from mom_mcp.models import Cost, Model
+from mom_mcp.providers import (
+    OLLAMA_PROVIDER,
+    OPENAI_PROVIDER,
+    OPENROUTER_PROVIDER,
+    PROVIDERS,
+)
 
 
-def test_registry_exposes_openai_and_openrouter():
+def test_registry_exposes_openai_ollama_and_openrouter():
     # Act / Assert
-    assert list(PROVIDERS) == ["openai", "openrouter"]
+    assert list(PROVIDERS) == ["openai", "ollama", "openrouter"]
 
 
 def test_execute_delegates_to_execute_chat_with_provider_base_url_and_key(monkeypatch):
@@ -26,8 +31,21 @@ def test_execute_delegates_to_execute_chat_with_provider_base_url_and_key(monkey
     # Assert
     assert result == "ok"
     execute_chat.assert_called_once_with(
-        "https://openrouter.ai/api/v1", "test-key", "moonshotai/kimi-k3", "hello", ["notes.txt"]
+        "https://openrouter.ai/api/v1", "test-key", "moonshotai/kimi-k3", "hello",
+        ["notes.txt"], None,
     )
+
+
+def test_execute_passes_a_system_prompt_through(monkeypatch):
+    # Arrange
+    monkeypatch.setenv("OPENAI_API_KEY", "test-key")
+
+    # Act
+    with patch("mom_mcp.providers.execute_chat") as execute_chat:
+        OPENAI_PROVIDER.execute("gpt-5.6-luna", "hello", [], "be terse")
+
+    # Assert
+    execute_chat.assert_called_once_with(None, "test-key", "gpt-5.6-luna", "hello", [], "be terse")
 
 
 def test_execute_raises_a_clear_error_when_the_api_key_is_missing(monkeypatch):
@@ -56,7 +74,23 @@ def test_openai_list_models_excludes_non_chat_models(monkeypatch):
     assert models == [Model(id="gpt-5.6-luna", name="gpt-5.6-luna")]
 
 
-def test_openrouter_list_models_maps_name_and_input_modalities(monkeypatch):
+def test_ollama_list_models_excludes_embedding_models(monkeypatch):
+    # Arrange
+    monkeypatch.setenv("OLLAMA_API_KEY", "test-key")
+
+    # Act
+    with patch("mom_mcp.providers.OpenAI") as openai_cls:
+        openai_cls.return_value.models.list.return_value = [
+            SimpleNamespace(id="gemma4:31b"),
+            SimpleNamespace(id="embeddinggemma"),
+        ]
+        models = OLLAMA_PROVIDER.list_models()
+
+    # Assert
+    assert models == [Model(id="gemma4:31b", name="gemma4:31b")]
+
+
+def test_openrouter_list_models_maps_name_modalities_and_cost(monkeypatch):
     # Arrange
     monkeypatch.setenv("OPENROUTER_API_KEY", "test-key")
 
@@ -68,10 +102,33 @@ def test_openrouter_list_models_maps_name_and_input_modalities(monkeypatch):
                 model_extra={
                     "name": "Kimi K3",
                     "architecture": {"input_modalities": ["text", "image"]},
+                    "pricing": {"prompt": "0.0000004", "completion": "0.0000016"},
                 },
             ),
         ]
         models = OPENROUTER_PROVIDER.list_models()
 
     # Assert
-    assert models == [Model(id="moonshotai/kimi-k3", name="Kimi K3", modalities=("text", "image"))]
+    assert models == [
+        Model(
+            id="moonshotai/kimi-k3",
+            name="Kimi K3",
+            modalities=("text", "image"),
+            cost=Cost(input=0.4, output=1.6),
+        )
+    ]
+
+
+def test_openrouter_cost_is_none_when_pricing_is_missing(monkeypatch):
+    # Arrange
+    monkeypatch.setenv("OPENROUTER_API_KEY", "test-key")
+
+    # Act
+    with patch("mom_mcp.providers.OpenAI") as openai_cls:
+        openai_cls.return_value.models.list.return_value = [
+            SimpleNamespace(id="acme/free-model", model_extra={"name": "Free Model"}),
+        ]
+        models = OPENROUTER_PROVIDER.list_models()
+
+    # Assert
+    assert models == [Model(id="acme/free-model", name="Free Model", cost=None)]
