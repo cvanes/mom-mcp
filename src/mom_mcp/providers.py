@@ -4,6 +4,7 @@ import os
 from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime, timedelta
+from itertools import zip_longest
 from typing import Any, TypedDict
 
 from openai import OpenAI
@@ -164,11 +165,14 @@ def _catalogue(provider: Provider) -> list[Model]:
 def search_models(query: str, limit: int) -> SearchResult:
     """Match models across all providers by name, id or provider name, case-insensitively.
 
+    Matches are interleaved across providers before the limit is applied, so a
+    provider with a large catalogue cannot push the others out of the results.
+
     A provider that fails (missing API key, network error, ...) is skipped and
     reported in errors so that the remaining providers can still be searched.
     """
     needle = query.strip().lower()
-    matches: list[ModelMatch] = []
+    matches_per_provider: list[list[ModelMatch]] = []
     errors: list[ProviderError] = []
     for provider in PROVIDERS.values():
         try:
@@ -176,18 +180,25 @@ def search_models(query: str, limit: int) -> SearchResult:
         except Exception as exc:
             errors.append({"provider": provider.name, "error": str(exc)})
             continue
-        matches += [
+        matches_per_provider.append([
             _to_match(provider, model)
             for model in catalogue
             if needle in model.name.lower()
             or needle in model.id.lower()
             or needle in provider.name.lower()
-        ]
+        ])
+    matches = _interleave(matches_per_provider)
     return {
         "models": matches[:limit],
         "truncated": len(matches) > limit,
         "errors": errors,
     }
+
+
+def _interleave(lists: list[list[ModelMatch]]) -> list[ModelMatch]:
+    """Take one item from each list in turn so that no provider crowds out the others."""
+    rounds = zip_longest(*lists)
+    return [item for round_ in rounds for item in round_ if item is not None]
 
 
 def _to_match(provider: Provider, model: Model) -> ModelMatch:

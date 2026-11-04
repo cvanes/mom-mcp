@@ -75,6 +75,24 @@ def test_truncates_results_to_the_limit_and_flags_it():
     assert result["truncated"] is True
 
 
+def test_limit_is_shared_across_providers_rather_than_filled_by_the_first(fake_catalogues):
+    # Arrange
+    openai_models = [Model(id=f"gpt-{n}", name=f"gpt-{n}") for n in range(5)]
+    fake_catalogues.side_effect = lambda self: (
+        openai_models if self.name == "openai" else FAKE_CATALOGUES[self.name]
+    )
+
+    # Act
+    result = search_models("", limit=3)
+
+    # Assert
+    assert [model["provider"] for model in result["models"]] == [
+        "openai",
+        "ollama",
+        "openrouter",
+    ]
+
+
 def test_results_include_provider_name_id_modalities_and_cost():
     # Act
     model = search_models("gemini", limit=50)["models"][0]
